@@ -1,18 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const userRoutes = require('./routes/users');
+const movieRoutes = require('./routes/movie-routes');
 
+// const PORT = 3000; // Определяем порт, на котором будет работать сервер
 const { PORT = 3000 } = process.env;
-
-const app = express(); // Инициализируем создание приложения (сервера)
+const app = express(); // Инициализируем создание приложения (или сервера)
 app.use(express.json());
-app.use(userRoutes);
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64249cfb18e8fd39882551b9',
-  };
-  next();
-});
+app.use(movieRoutes);
 
 mongoose
   .connect('mongodb://0.0.0.0:27017/mestodb')
