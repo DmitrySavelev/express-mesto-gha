@@ -1,28 +1,28 @@
 const express = require('express');
+
+const app = express(); // Инициализируем создание приложения (сервера)
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const userRoutes = require('./routes/users');
+const cardRoutes = require('./routes/cards');
 
 const { PORT = 3000 } = process.env;
 
-const app = express(); // Инициализируем создание приложения (сервера)
-app.use(express.json());
-app.use(userRoutes);
 app.use((req, res, next) => {
   req.user = {
     _id: '64249cfb18e8fd39882551b9',
   };
   next();
 });
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(userRoutes);
+app.use(cardRoutes);
 
 mongoose
   .connect('mongodb://0.0.0.0:27017/mestodb')
   .then(() => console.log('connected to Mongodb'))
   .catch((err) => console.log(`DB connection error: ${err}`));
 
-app.listen(PORT, (err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log(`Listening port ${PORT}`);
-  }
-});
+app.listen(PORT);
