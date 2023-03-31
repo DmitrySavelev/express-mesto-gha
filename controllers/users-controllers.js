@@ -8,7 +8,7 @@ const {
 const getUsers = (req, res) => {
   User
     .find({})
-    .then((users) => res.status(200).json(users))
+    .then((users) => res.send({ users }))
     .catch(() => res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' }));
 };
 
@@ -19,7 +19,7 @@ const getUser = (req, res) => {
       if (!user) {
         return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
       }
-      return res.status(200).json(user);
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -34,7 +34,7 @@ const getUser = (req, res) => {
 const createUser = (req, res) => {
   User
     .create(req.body)
-    .then((result) => res.status(201).json(result))
+    .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(INCORRECT_DATA_ERROR_CODE)
@@ -52,7 +52,7 @@ const updateProfile = (req, res) => {
       if (!name || !about) {
         return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
       }
-      return res.status(200).send(user);
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
@@ -73,7 +73,7 @@ const updateAvatar = (req, res) => {
       if (!avatar) {
         return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
       }
-      return res.status(200).send(user);
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {

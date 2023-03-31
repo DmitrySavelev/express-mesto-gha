@@ -8,7 +8,7 @@ const {
 const getCards = (req, res) => {
   Card
     .find({})
-    .then((cards) => res.status(200).json(cards))
+    .then((cards) => res.send({ data: cards }))
     .catch(() => res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' }));
 };
 
@@ -16,7 +16,7 @@ const createCard = (req, res) => {
   const owner = req.user._id;
   const { name, link } = req.body;
   Card.create({ name, link, owner })
-    .then((card) => res.status(201).json(card))
+    .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res
@@ -34,7 +34,7 @@ const deleteCard = (req, res) => {
       if (!card) {
         return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
       }
-      return res.status(200).json(card);
+      return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -53,7 +53,7 @@ const likeCard = (req, res) => {
       if (!card) {
         return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
       }
-      return res.status(200).json(card);
+      return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -72,7 +72,7 @@ const dislikeCard = (req, res) => {
       if (!card) {
         return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
       }
-      return res.status(200).json(card);
+      return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
