@@ -2,12 +2,9 @@ const express = require('express');
 
 const app = express(); // Инициализируем создание приложения (сервера)
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
-const {
-  NOT_FOUND_ERROR_CODE,
-} = require('./utils/constants');
+const { NOT_FOUND_ERROR_CODE } = require('./utils/constants');
 
 const { PORT = 3000 } = process.env;
 
@@ -18,8 +15,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(userRoutes);
 app.use(cardRoutes);
 app.use((req, res) => {
