@@ -44,25 +44,25 @@ const createUser = (req, res) => {
     });
 };
 
-// const updateProfile = (req, res) => {
-//   const id = req.user._id;
-//   const { name, about } = req.body;
-//   User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
-//     .then((user) => {
-//       if (!name || !about) {
-//         return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
-//       }
-//       return res.status(200).send(user);
-//     })
-//     .catch((err) => {
-//       if (err.name === 'ValidationError' || err.name === 'CastError') {
-//         return res
-//           .status(INCORRECT_DATA_ERROR_CODE)
-//           .send({ message: 'Переданы некорректные данные при обновлении профиля' });
-//       }
-//       return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
-//     });
-// };
+const updateProfile = (req, res) => {
+  const id = req.user._id;
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
+    .then((user) => {
+      if (!name || !about) {
+        return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      }
+      return res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        return res
+          .status(INCORRECT_DATA_ERROR_CODE)
+          .send({ message: 'Переданы некорректные данные при обновлении профиля' });
+      }
+      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
+    });
+};
 
 const updateAvatar = (req, res) => {
   const id = req.user._id;
@@ -89,6 +89,6 @@ module.exports = {
   getUsers,
   getUser,
   createUser,
-  // updateProfile,
+  updateProfile,
   updateAvatar,
 };
