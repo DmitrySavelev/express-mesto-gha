@@ -48,7 +48,12 @@ const updateProfile = (req, res) => {
   const id = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
-    .then((user) => res.status(200).send(user))
+    .then((user) => {
+      if (!name || !about) {
+        return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      }
+      return res.status(200).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res
@@ -64,7 +69,12 @@ const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User
     .findByIdAndUpdate(id, { avatar }, { returnDocument: 'after', runValidators: true })
-    .then((user) => res.status(200).send(user))
+    .then((user) => {
+      if (!avatar) {
+        return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
+      }
+      return res.status(200).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res
