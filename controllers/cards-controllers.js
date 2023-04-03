@@ -1,4 +1,4 @@
-const Card = require('../models/card');
+const Card = require('../models/card-models');
 const {
   INCORRECT_DATA_ERROR_CODE,
   NOT_FOUND_ERROR_CODE,

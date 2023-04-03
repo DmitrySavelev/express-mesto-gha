@@ -1,23 +1,26 @@
 const express = require('express');
 
-const app = express(); // Инициализируем создание приложения (сервера)
+const app = express();
 const mongoose = require('mongoose');
-const userRoutes = require('./routes/users');
-const cardRoutes = require('./routes/cards');
+const userRoutes = require('./routes/users-routes');
+const cardRoutes = require('./routes/cards-routes');
+const { login, createUser } = require('./controllers/users-controllers');
 const { NOT_FOUND_ERROR_CODE } = require('./utils/constants');
+const { auth } = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64249cfb18e8fd39882551b9',
-  };
-  next();
-});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+app.use(auth);
+
 app.use(userRoutes);
 app.use(cardRoutes);
+
 app.use((req, res) => {
   res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Ошибка 404: несуществующая страница' });
 });
