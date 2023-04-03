@@ -127,11 +127,10 @@ const login = (req, res) => { // POST /signin,
 const getUserInfo = (req, res, next) => { // GET /users/me
   User.findById(req.user._id)
     .then((user) => {
-      const { name, about } = user;
       if (!user) {
         throw new NOT_FOUND_ERROR_CODE('Пользователь по указанному _id не найден');
       }
-      return res.status(200).send({ name, about });
+      return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
