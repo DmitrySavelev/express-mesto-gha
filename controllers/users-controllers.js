@@ -1,17 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jsonwebtoken = require('jsonwebtoken');
 const User = require('../models/user-models');
-const {
-  INCORRECT_DATA_ERROR_CODE,
-  NOT_FOUND_ERROR_CODE,
-  DEFAULT_ERROR_CODE,
-} = require('../utils/constants');
 
 const ValidationError = require('../errors/validation-err'); // 400 некорректный запрос
-// const AuthError = require('../errors/auth-err'); // 401 не авторизован
-// const NotFoundError = require('../errors/not-found-err'); //404
+const NotFoundError = require('../errors/not-found-err'); // 404
 const ConflictError = require('../errors/conflict-err'); // 409
-// const DefaultError = require('../errors/default-err'); // 500
 
 const getUsers = (req, res, next) => { // GET /users
   User
@@ -20,22 +13,20 @@ const getUsers = (req, res, next) => { // GET /users
     .catch(next);
 };
 
-const getUser = (req, res) => { // GET /users/:userId
+const getUserById = (req, res, next) => { // GET /users/id/:userId
   User
     .findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND_ERROR_CODE).send({ message: 'Карточка с указанным _id не найдена' });
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      return res.send({ data: user });
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
-          .status(INCORRECT_DATA_ERROR_CODE)
-          .send({ message: 'Переданы некорректные данные пользователя' });
+        next(new ValidationError('Переданы некорректные данные пользователя'));
       }
-      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
+      next(err);
     });
 };
 
@@ -45,11 +36,10 @@ const updateUserInfo = (req, res, next) => { // PATCH /users/me
   User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
     .then((user) => {
       if (!name || !about) {
-        throw new ValidationError('Некорректный запрос');
+        next(new ValidationError('Некорректный запрос'));
       }
-      return res.send({ data: user });
-    })
-    .catch(next);
+      res.send({ data: user });
+    });
 };
 
 const updateAvatar = (req, res, next) => { // PATCH /users/me/avatar
@@ -59,11 +49,10 @@ const updateAvatar = (req, res, next) => { // PATCH /users/me/avatar
     .findByIdAndUpdate(id, { avatar }, { returnDocument: 'after', runValidators: true })
     .then((user) => {
       if (!avatar) {
-        throw new ValidationError('Некорректный запрос');
+        next(new ValidationError('Некорректный запрос'));
       }
-      return res.send({ data: user });
-    })
-    .catch(next);
+      res.send({ data: user });
+    });
 };
 
 const createUser = (req, res, next) => { // POST /signup
@@ -99,9 +88,9 @@ const createUser = (req, res, next) => { // POST /signup
     });
 };
 
-const login = (req, res) => { // POST /signin,
+const login = (req, res, next) => { // POST /signin,
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jsonwebtoken.sign({ _id: user._id }, 'very_difficalt_password', { expiresIn: '7d' });
       res.send({
@@ -110,30 +99,28 @@ const login = (req, res) => { // POST /signin,
         email: user.email,
       });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 const getUserInfo = (req, res, next) => { // GET /users/me
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        throw new NOT_FOUND_ERROR_CODE('Пользователь по указанному _id не найден');
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      return res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new INCORRECT_DATA_ERROR_CODE('Переданы некорректные данные пользователя'));
+        next(new ValidationError('Переданы некорректные данные пользователя'));
       }
-      return next(err);
+      next(err);
     });
 };
 
 module.exports = {
   getUsers,
-  getUser,
+  getUserById,
   updateUserInfo,
   updateAvatar,
   createUser,
