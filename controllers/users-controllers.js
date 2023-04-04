@@ -7,12 +7,17 @@ const {
   DEFAULT_ERROR_CODE,
 } = require('../utils/constants');
 
-const getUsers = (req, res) => { // GET /users
-  console.log(req.user._id);
+const ValidationError = require('../errors/validation-err'); // 400 некорректный запрос
+// const AuthError = require('../errors/auth-err'); // 401 не авторизован
+// const NotFoundError = require('../errors/not-found-err'); //404
+const ConflictError = require('../errors/conflict-err'); // 409
+// const DefaultError = require('../errors/default-err'); // 500
+
+const getUsers = (req, res, next) => { // GET /users
   User
     .find({})
     .then((users) => res.send({ users }))
-    .catch(() => res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' }));
+    .catch(next);
 };
 
 const getUser = (req, res) => { // GET /users/:userId
@@ -34,48 +39,34 @@ const getUser = (req, res) => { // GET /users/:userId
     });
 };
 
-const updateProfile = (req, res) => { // PATCH /users/me
+const updateUserInfo = (req, res, next) => { // PATCH /users/me
   const id = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
     .then((user) => {
       if (!name || !about) {
-        return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
+        throw new ValidationError('Некорректный запрос');
       }
       return res.send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res
-          .status(INCORRECT_DATA_ERROR_CODE)
-          .send({ message: 'Переданы некорректные данные при обновлении профиля' });
-      }
-      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
-    });
+    .catch(next);
 };
 
-const updateAvatar = (req, res) => { // PATCH /users/me/avatar
+const updateAvatar = (req, res, next) => { // PATCH /users/me/avatar
   const id = req.user._id;
   const { avatar } = req.body;
   User
     .findByIdAndUpdate(id, { avatar }, { returnDocument: 'after', runValidators: true })
     .then((user) => {
       if (!avatar) {
-        return res.status(INCORRECT_DATA_ERROR_CODE).send({ message: 'Некорректный запрос' });
+        throw new ValidationError('Некорректный запрос');
       }
       return res.send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res
-          .status(INCORRECT_DATA_ERROR_CODE)
-          .send({ message: 'Переданы некорректные данные при обновлении аватара' });
-      }
-      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
-    });
+    .catch(next);
 };
 
-const createUser = (req, res) => { // POST /signup
+const createUser = (req, res, next) => { // POST /signup
   const {
     name,
     about,
@@ -100,10 +91,11 @@ const createUser = (req, res) => { // POST /signup
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(INCORRECT_DATA_ERROR_CODE)
-          .send({ message: 'Переданы некорректные данные пользователя' });
+        next(new ValidationError('Переданы некорректные данные пользователя'));
       }
-      return res.status(DEFAULT_ERROR_CODE).send({ message: 'Ошибка по умолчанию' });
+      if (err.code === 11000) {
+        next(new ConflictError('Такой пользователь уже существует'));
+      }
     });
 };
 
@@ -114,9 +106,8 @@ const login = (req, res) => { // POST /signin,
       const token = jsonwebtoken.sign({ _id: user._id }, 'very_difficalt_password', { expiresIn: '7d' });
       res.send({
         token,
-        user,
-        // name: user.name,
-        // email: user.email,
+        name: user.name,
+        email: user.email,
       });
     })
     .catch((err) => {
@@ -143,7 +134,7 @@ const getUserInfo = (req, res, next) => { // GET /users/me
 module.exports = {
   getUsers,
   getUser,
-  updateProfile,
+  updateUserInfo,
   updateAvatar,
   createUser,
   login,
