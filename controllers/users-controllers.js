@@ -25,8 +25,9 @@ const getUserById = (req, res, next) => { // GET /users/id/:userId
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные пользователя'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -34,11 +35,13 @@ const updateUserInfo = (req, res, next) => { // PATCH /users/me
   const id = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(id, { name, about }, { returnDocument: 'after', runValidators: true })
-    .then((user) => {
-      if (!name || !about) {
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
         next(new ValidationError('Некорректный запрос'));
+      } else {
+        next(err);
       }
-      res.send({ data: user });
     });
 };
 
@@ -47,11 +50,13 @@ const updateAvatar = (req, res, next) => { // PATCH /users/me/avatar
   const { avatar } = req.body;
   User
     .findByIdAndUpdate(id, { avatar }, { returnDocument: 'after', runValidators: true })
-    .then((user) => {
-      if (!avatar) {
+    .then((user) => res.send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
         next(new ValidationError('Некорректный запрос'));
+      } else {
+        next(err);
       }
-      res.send({ data: user });
     });
 };
 
@@ -81,9 +86,10 @@ const createUser = (req, res, next) => { // POST /signup
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные пользователя'));
-      }
-      if (err.code === 11000) {
+      } else if (err.code === 11000) {
         next(new ConflictError('Такой пользователь уже существует'));
+      } else {
+        next(err);
       }
     });
 };
@@ -113,8 +119,9 @@ const getUserInfo = (req, res, next) => { // GET /users/me
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные пользователя'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
