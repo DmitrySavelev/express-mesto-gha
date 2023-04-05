@@ -9,6 +9,7 @@ const { login, createUser } = require('./controllers/users-controllers');
 const { auth } = require('./middlewares/auth');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { loginValidation, registerValidation } = require('./middlewares/validation');
+const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
 
@@ -27,6 +28,10 @@ app.use(auth);
 
 app.use(userRoutes);
 app.use(cardRoutes);
+
+app.use((req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
+});
 
 app.use(errors()); // обработчик ошибок celebrate
 app.use(errorHandler); // централизованный обработчик
